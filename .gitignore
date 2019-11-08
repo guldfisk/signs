@@ -1,0 +1,12 @@
+node_modules/
+.idea/
+appdirs/
+frontend/static/
+src/
+/.env
+media/
+!/frontend/src/
+appdirs/secretresources/signs/frontend/
+__pycache__/
+/static/new_garbage_out_all.pdf
+frontend/migrations/

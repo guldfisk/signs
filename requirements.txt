@@ -1,0 +1,18 @@
+Django
+djangorestframework>=3.9
+-e git+https://github.com/guldfisk/yeetlong.git#egg=yeetlong
+-e git+https://github.com/guldfisk/secretresources.git#egg=secretresources
+appdirs
+frozendict
+requests
+promise
+numpy
+httplib2
+google-api-python-client
+oauth2client
+mysqlclient>=1.3.12
+django-mysql>=2.2.0
+django-rest-knox
+gunicorn
+django-cors-headers
+boto3

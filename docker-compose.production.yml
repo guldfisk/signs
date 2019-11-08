@@ -1,0 +1,35 @@
+version: '3.3'
+
+services:
+
+  db:
+    environment:
+      DEBUG: 0
+
+  nginx:
+    image: nginx:1.13
+    ports:
+      - "${PORT_OUT}:80"
+    volumes:
+      - ./config/nginx/conf.d:/etc/nginx/conf.d
+      - static_volume:/opt/services/cubeapp/static
+      - media_volume:/opt/services/cubeapp/meda
+    depends_on:
+      - web
+    networks:
+      - nginx_network
+    env_file:
+      - .env
+    environment:
+      DEBUG: 0
+
+  web:
+    networks:
+      - nginx_network
+    environment:
+      DEBUG: 0
+
+
+networks:
+  nginx_network:
+    driver: bridge

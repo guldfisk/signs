@@ -1,0 +1,42 @@
+version: '3.3'
+
+services:
+  db:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_DATABASE: 'signs'
+      MYSQL_USER: 'phdk'
+      MYSQL_PASSWORD: "${DB_PASSWORD}"
+      MYSQL_ROOT_PASSWORD: "${DB_PASSWORD}"
+      DEBUG: 1
+    volumes:
+      - db:/var/lib/mysql
+    networks:
+      - database_network
+
+  web:
+    build: .
+    image: app-image
+    restart: always
+    volumes:
+      - .:/code
+      - static_volume:/opt/services/cubeapp/static
+      - media_volume:/opt/services/cubeapp/meda
+    depends_on:
+      - db
+    networks:
+      - database_network
+    env_file:
+      - .env
+    environment:
+      - DEBUG=1
+
+networks:
+  database_network:
+    driver: bridge
+
+volumes:
+  db:
+  static_volume:
+  media_volume:
