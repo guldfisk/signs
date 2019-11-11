@@ -36,7 +36,7 @@ class Familiarity(models.Model):
         on_delete = models.CASCADE,
         related_name = 'familiarities',
     )
-    level = models.IntegerField()
+    level = models.IntegerField(default = 0)
     sign = models.ForeignKey(
         Sign,
         on_delete = models.CASCADE,

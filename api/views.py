@@ -9,14 +9,16 @@ from distutils.util import strtobool
 
 from django.db import transaction
 from django.db.models import Sum, Case, When, IntegerField, F
-from django.http import HttpResponse, HttpRequest
+from django.http import HttpResponse, HttpRequest, Http404
 from django.contrib.auth import get_user_model
 from django.db.utils import IntegrityError
 from django.template.loader import get_template
 from django.conf import settings
+from knox.auth import TokenAuthentication
 
 from rest_framework import status, generics, permissions
 from rest_framework.decorators import api_view
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.request import Request
 from rest_framework.response import Response
 
@@ -96,7 +98,7 @@ class UserDetail(generics.RetrieveAPIView):
 
 class SignView(generics.RetrieveAPIView):
     queryset = models.Sign.objects.all()
-    serializer_class = serializers.SignSerializer
+    serializer_class = serializers.FullSignSerializer
 
 
 class SemanticAtomView(generics.RetrieveAPIView):
@@ -104,81 +106,165 @@ class SemanticAtomView(generics.RetrieveAPIView):
     serializer_class = serializers.SemanticAtomSerializer
 
 
-@api_view(['POST'])
-def create_training_set(request: Request) -> Response:
-    if not request.user:
-        return Response(status = status.HTTP_403_FORBIDDEN)
-    try:
-        familiarity_threshold = int(request.query_params.get('familiarity_threshold', 3))
-        size = int(request.query_params.get('size', 50))
-    except ValueError:
-        return Response(status = status.HTTP_400_BAD_REQUEST)
+class TrainingSetView(generics.GenericAPIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
 
-    with transaction.atomic():
-        signs = models.Sign.objects.annotate(
+    def get(self, request: Request) -> Response:
+        training_set = request.user.training_sets.order_by('created_at').last()
+
+        if not training_set:
+            return Response(status = status.HTTP_400_BAD_REQUEST)
+
+        signs = training_set.signs.select_related('atom').annotate(
             familiarity = Sum(
                 Case(
                     When(
                         familiarities__user = request.user,
-                        then = F('familiarities__level')
+                        then = F('familiarities__level'),
+                    ),
+                    default = 0,
+                    output_field = IntegerField(),
+                )
+            )
+        ).order_by('-familiarity', 'atom__meaning')
+
+        return Response(
+            {
+                'id': training_set.id,
+                'threshold': training_set.threshold,
+                'size': training_set.size,
+                'signs': [
+                    serializers.FullSignSerializerWithFamiliarity(
+                        sign
+                    ).data
+                    for sign in
+                    signs
+                ]
+            }
+        )
+
+    def post(self, request: Request) -> Response:
+        try:
+            familiarity_threshold = int(request.data.get('familiarity_threshold', 3))
+            size = int(request.data.get('size', 50))
+            if not size in range(1, 999) or not familiarity_threshold in range(1, 9):
+                raise ValueError()
+        except ValueError:
+            return Response(status = status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            signs = models.Sign.objects.annotate(
+                familiarity = Sum(
+                    Case(
+                        When(
+                            familiarities__user = request.user,
+                            then = F('familiarities__level')
+                        ),
+                        default = 0,
+                        output_field = IntegerField(),
+                    )
+                )
+            ).filter(
+                familiarity__lt = familiarity_threshold
+            ).order_by('?')[:size]
+
+            training_set = models.TrainingSet.objects.create(
+                user = request.user,
+                threshold = familiarity_threshold,
+                size = size,
+            )
+
+            join_model = models.TrainingSet.signs.through
+
+            join_model.objects.bulk_create(
+                [
+                    join_model(
+                        trainingset_id = training_set.id,
+                        sign_id = sign.id,
+                    )
+                    for sign in
+                    signs
+                ]
+            )
+
+        return Response(
+            {
+                'id': training_set.id,
+                'threshold': training_set.threshold,
+                'size': training_set.size,
+                'signs': [
+                    serializers.FullSignSerializerWithFamiliarity(
+                        sign
+                    ).data
+                    for sign in
+                    sorted(
+                        sorted(
+                            signs,
+                            key = lambda sign: sign.atom.meaning,
+                        ),
+                        key = lambda sign: sign.familiarity,
+                        reverse = True,
+                    )
+                ]
+            }
+        )
+
+
+class TrainingView(generics.GenericAPIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    serializer_class = serializers.TrainingSerializer
+
+    def post(self, request: Request) -> Response:
+        serializer: serializers.TrainingSerializer = self.get_serializer(data = request.data)
+        serializer.is_valid(raise_exception = True)
+
+        sign_id, success = serializer.validated_data['sign'], serializer.validated_data['success']
+
+        training_set = request.user.training_sets.order_by('created_at').last()
+
+        if not training_set:
+            return Response(status = status.HTTP_400_BAD_REQUEST)
+
+        if sign_id is not None:
+            if success is None:
+                return Response(status = status.HTTP_400_BAD_REQUEST)
+
+            try:
+                sign = models.Sign.objects.get(id = sign_id)
+            except models.Sign.DoesNotExist:
+                raise Http404
+
+            familiarity, _ = models.Familiarity.objects.get_or_create(
+                user = request.user,
+                sign = sign,
+            )
+
+            if success:
+                familiarity.level += 1
+            else:
+                familiarity.level = 0
+
+            familiarity.save(update_fields = ('level',))
+
+        sign = training_set.signs.annotate(
+            familiarity = Sum(
+                Case(
+                    When(
+                        familiarities__user = request.user,
+                        then = F('familiarities__level'),
                     ),
                     default = 0,
                     output_field = IntegerField(),
                 )
             )
         ).filter(
-            familiarity__lt = familiarity_threshold
-        ).order_by('?')[:size]
+            familiarity__lt = training_set.threshold
+        ).order_by('?').first()
 
-        training_set = models.TrainingSet.objects.create(
-            user = request.user,
-            threshold = familiarity_threshold,
-            size = size,
+        return Response(
+            serializers.FullSignSerializer(
+                sign
+            ).data
         )
-
-        join_model = models.TrainingSet.signs.through
-
-        join_model.objects.bulk_create(
-            [
-                join_model(
-                    trainingset_id = training_set.id,
-                    sign_id = sign.id,
-                )
-                for sign in
-                signs
-            ]
-        )
-
-    return Response('ok')
-
-
-@api_view(['GET'])
-def get_sign(request: Request) -> Response:
-    if not request.user:
-        return Response(status = status.HTTP_403_FORBIDDEN)
-
-    training_set = request.user.training_sets.order_by('created_at').last()
-
-    if not training_set:
-        return Response(status = status.HTTP_400_BAD_REQUEST)
-
-    sign = training_set.signs.annotate(
-        familiarity = Sum(
-            Case(
-                When(
-                    familiarities__user = request.user,
-                    then = F('familiarities__level'),
-                ),
-                default = 0,
-                output_field = IntegerField(),
-            )
-        )
-    ).filter(
-        familiarity__lt = training_set.threshold
-    ).order_by('?').first()
-
-    return Response(
-        serializers.FullSignSerializer(
-            sign
-        ).data
-    )

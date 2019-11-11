@@ -13,7 +13,7 @@ urlpatterns = [
     path('sign/<int:pk>/', views.SignView.as_view()),
     path('atom/<int:pk>/', views.SemanticAtomView.as_view()),
 
-    path('training-set/', views.create_training_set),
-    path('training-set/sign/', views.get_sign),
+    path('training-set/', views.TrainingSetView.as_view()),
+    path('training-set/sign/', views.TrainingView.as_view()),
 
 ]

@@ -94,8 +94,12 @@ class RootComponent extends React.Component<RootProps> {
               <Nav.Link>Home</Nav.Link>
             </LinkContainer>
 
-            <LinkContainer to='/about/'>
-              <Nav.Link>About</Nav.Link>
+            <LinkContainer to='/training-set'>
+              <Nav.Link>Training Set</Nav.Link>
+            </LinkContainer>
+
+            <LinkContainer to='/train'>
+              <Nav.Link>Train</Nav.Link>
             </LinkContainer>
 
           </Nav>

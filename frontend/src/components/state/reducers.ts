@@ -1,13 +1,15 @@
 import {signingIn, authFailed, signInSuccess, reSignInSuccess, signOutSuccess} from "./actions";
 
 
-const initialState: {
- token: string,
- authenticated: boolean,
- errorMessage: string | null,
- loading: boolean,
- user: any,
-} = {
+interface StoreState {
+  token: string
+  authenticated: boolean
+  errorMessage: string | null
+  loading: boolean
+  user: any
+}
+
+const initialState: StoreState = {
   token: localStorage.getItem("token"),
   authenticated: null,
   errorMessage: null,
@@ -16,7 +18,7 @@ const initialState: {
 };
 
 
-export default function authReducer(state=initialState, action: any): {[key: string]: any} {
+export default function authReducer(state = initialState, action: any): StoreState {
 
   switch (action.type) {
 
@@ -47,4 +49,5 @@ export default function authReducer(state=initialState, action: any): {[key: str
     default:
       return state;
   }
+
 }

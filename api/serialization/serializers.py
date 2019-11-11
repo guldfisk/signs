@@ -11,6 +11,7 @@ DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
 
 
 class UserSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = get_user_model()
         fields = ('id', 'username')
@@ -46,12 +47,14 @@ class LoginSerializer(serializers.Serializer):
 
 
 class SignSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = models.Sign
         fields = ('id', 'external_id',)
 
 
 class MinimalSemanticAtomSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = models.SemanticAtom
         fields = ('id', 'meaning')
@@ -65,10 +68,42 @@ class FullSignSerializer(serializers.ModelSerializer):
         fields = ('id', 'external_id', 'atom')
 
 
+class FullSignSerializerWithFamiliarity(serializers.ModelSerializer):
+    atom = MinimalSemanticAtomSerializer()
+    familiarity = serializers.IntegerField()
+
+    class Meta:
+        model = models.Sign
+        fields = ('id', 'external_id', 'atom', 'familiarity')
+
+
 class SemanticAtomSerializer(serializers.ModelSerializer):
     signs = SignSerializer(many = True)
-
 
     class Meta:
         model = models.SemanticAtom
         fields = ('id', 'meaning', 'signs')
+
+
+class TrainingSetSerializer(serializers.ModelSerializer):
+    signs = FullSignSerializer(many = True)
+
+    class Meta:
+        model = models.TrainingSet
+        fields = ('id', 'threshold', 'size', 'signs')
+
+
+# class TrainingSetSerializerWithFamiliarity(TrainingSetSerializer):
+#     signs = FullSignSerializerWithFamiliarity(many = True)
+
+
+class TrainingSerializer(serializers.Serializer):
+    sign = serializers.IntegerField(allow_null = True, required = False, default = None)
+    success = serializers.BooleanField(allow_null = True, required = False, default = None)
+
+
+    def update(self, instance, validated_data):
+        raise NotImplemented()
+
+    def create(self, validated_data):
+        raise NotImplemented()

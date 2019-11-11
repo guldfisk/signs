@@ -1,20 +1,59 @@
 import React from 'react';
 
-import ReactPlayer from "react-player";
-import FilePlayer from 'react-player/lib/players/FilePlayer';
+import {Loading} from '../utils/utils';
+import {FullSign} from "../models/models";
+import Container from "react-bootstrap/Container";
+import {SignVideo} from "../views/video";
+import {Link} from "react-router-dom";
 
 
-export default class SignPage extends React.Component {
+interface SignPageProps {
+  match: any
+}
+
+interface SignPageState {
+  sign: null | FullSign
+}
+
+export default class SignPage extends React.Component<SignPageProps, SignPageState> {
+
+  constructor(props: SignPageProps) {
+    super(props);
+    this.state = {
+      sign: null,
+    };
+  }
+
+  componentDidMount() {
+    FullSign.get(this.props.match.params.id).then(
+      sign => {
+        this.setState({sign})
+      }
+    );
+  }
 
   render() {
-    return <FilePlayer
-      url='http://tegnsprog.dk/video/t/t_1305.mp4'
-      playing
-      loop
-      controls
-      muted
+    let atom = <Loading/>;
+    if (this.state.sign !== null) {
+      atom = <div>
+        {
+          <Link
+            to={'/atom/' + this.state.sign.atom.id}
+          >
+            {this.state.sign.atom.meaning}
+          </Link>
+        }
+        <SignVideo
+          sign={this.state.sign}
+        />
+      </div>
+    }
 
-    />
+    return <Container
+      fluid
+    >
+      {atom}
+    </Container>
   }
 
 }
