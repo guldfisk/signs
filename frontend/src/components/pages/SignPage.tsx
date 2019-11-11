@@ -1,21 +1,25 @@
 import React from 'react';
 
+import {connect} from "react-redux";
+
 import {Loading} from '../utils/utils';
 import {FullSign} from "../models/models";
 import Container from "react-bootstrap/Container";
 import {SignVideo} from "../views/video";
 import {Link} from "react-router-dom";
+import Button from "react-bootstrap/Button";
 
 
 interface SignPageProps {
   match: any
+  authenticated: boolean
 }
 
 interface SignPageState {
   sign: null | FullSign
 }
 
-export default class SignPage extends React.Component<SignPageProps, SignPageState> {
+class SignPage extends React.Component<SignPageProps, SignPageState> {
 
   constructor(props: SignPageProps) {
     super(props);
@@ -32,6 +36,10 @@ export default class SignPage extends React.Component<SignPageProps, SignPageSta
     );
   }
 
+  handleSetFamiliarity = (): void => {
+    this.state.sign.setFamiliarity(255);
+  };
+
   render() {
     let atom = <Loading/>;
     if (this.state.sign !== null) {
@@ -46,6 +54,13 @@ export default class SignPage extends React.Component<SignPageProps, SignPageSta
         <SignVideo
           sign={this.state.sign}
         />
+        {
+          this.props.authenticated && this.state.sign ? <Button
+            onClick={this.handleSetFamiliarity}
+          >
+            I know this one
+          </Button> : null
+        }
       </div>
     }
 
@@ -57,3 +72,17 @@ export default class SignPage extends React.Component<SignPageProps, SignPageSta
   }
 
 }
+
+const mapStateToProps = (state: any) => {
+  return {
+    authenticated: state.authenticated,
+  };
+};
+
+
+const mapDispatchToProps = (dispatch: any) => {
+  return {
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(SignPage);

@@ -57,6 +57,14 @@ export default class TrainingSetView extends React.Component<TrainingSetViewProp
         text: 'Familiarity',
         type: 'number',
         sort: true,
+        sortFunc: (aFam: any, bFam: any, order: string) => {
+          const a = aFam.props.children;
+          const b = bFam.props.children;
+          if (order === 'desc') {
+            return b - a;
+          }
+          return a - b;
+        },
       },
     ];
 
@@ -70,7 +78,15 @@ export default class TrainingSetView extends React.Component<TrainingSetViewProp
             {sign.atom.meaning}
           </Link>,
           meaningSearch: sign.atom.meaning,
-          familiarity: sign.familiarity,
+          familiarity: <span
+            style={
+              {
+                color: sign.familiarity >= this.props.trainingSet.threshold ? 'green' : 'red',
+              }
+            }
+          >
+            {sign.familiarity}
+          </span>,
         }
       }
     );

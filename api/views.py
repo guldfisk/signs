@@ -106,6 +106,33 @@ class SemanticAtomView(generics.RetrieveAPIView):
     serializer_class = serializers.SemanticAtomSerializer
 
 
+class SignFamiliarity(generics.GenericAPIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def patch(self, request: Request, pk: int) -> Response:
+        try:
+            value = int(request.data['familiarity'])
+            if not value in range(1, 256):
+                raise ValueError
+        except (ValueError, KeyError):
+            return Response(status = status.HTTP_400_BAD_REQUEST)
+
+        try:
+            sign = models.Sign.objects.get(id = pk)
+        except models.Sign.DoesNotExist:
+            raise Http404
+
+        familiarity, _ = models.Familiarity.objects.get_or_create(
+            user = request.user,
+            sign = sign,
+        )
+        familiarity.level = value
+        familiarity.save(update_fields = ('level',))
+
+        return Response(status = status.HTTP_200_OK)
+
+
 class TrainingSetView(generics.GenericAPIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
@@ -148,7 +175,7 @@ class TrainingSetView(generics.GenericAPIView):
         try:
             familiarity_threshold = int(request.data.get('familiarity_threshold', 3))
             size = int(request.data.get('size', 50))
-            if not size in range(1, 999) or not familiarity_threshold in range(1, 9):
+            if not size in range(1, 1000) or not familiarity_threshold in range(1, 10):
                 raise ValueError()
         except ValueError:
             return Response(status = status.HTTP_400_BAD_REQUEST)
@@ -262,6 +289,9 @@ class TrainingView(generics.GenericAPIView):
         ).filter(
             familiarity__lt = training_set.threshold
         ).order_by('?').first()
+
+        if sign is None:
+            return Response('Set completed', status = status.HTTP_204_NO_CONTENT)
 
         return Response(
             serializers.FullSignSerializer(

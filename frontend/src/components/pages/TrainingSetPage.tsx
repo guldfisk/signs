@@ -12,7 +12,7 @@ import Form from "react-bootstrap/Form";
 
 
 interface CreateTrainingSetFormProps {
-  handleSubmit: (size: number) => void
+  handleSubmit: (size: number, familiarityThreshold: number) => void
 }
 
 
@@ -20,7 +20,8 @@ class CreateTrainingSetForm extends React.Component<CreateTrainingSetFormProps> 
 
   handleSubmit = (event: any) => {
     this.props.handleSubmit(
-      event.target.elements.size.value
+      event.target.elements.size.value,
+      event.target.elements.familiarityThreshold.value,
     );
     event.preventDefault();
     event.stopPropagation();
@@ -29,12 +30,25 @@ class CreateTrainingSetForm extends React.Component<CreateTrainingSetFormProps> 
   render() {
     return <Form
       onSubmit={this.handleSubmit}
+      style={
+        {
+          margin: "20px"
+        }
+      }
     >
-      <Form.Group controlId="size">
-        <Form.Label>Size</Form.Label>
-        <Form.Control type="number" defaultValue="50"/>
-      </Form.Group>
-      <Button type="submit">New training set</Button>
+      <Form.Row>
+        <Form.Group controlId="size">
+          <Form.Label>Size</Form.Label>
+          <Form.Control type="number" defaultValue="50"/>
+        </Form.Group>
+        <Form.Group controlId="familiarityThreshold">
+          <Form.Label>Familiarity Threshold</Form.Label>
+          <Form.Control type="number" defaultValue="3"/>
+        </Form.Group>
+      </Form.Row>
+      <Form.Row>
+        <Button type="submit">New training set</Button>
+      </Form.Row>
     </Form>
   }
 
@@ -85,13 +99,13 @@ export default class TrainingSetPage extends React.Component<TrainingSetPageProp
     );
   }
 
-  handleNewTrainingSet = (size: number): void => {
+  handleNewTrainingSet = (size: number, familiarityThreshold: number): void => {
     this.setState(
       {
         loading: true
       },
       () => {
-        TrainingSet.new(size).then(
+        TrainingSet.new(size, familiarityThreshold).then(
           trainingSet => {
             this.setState(
               {

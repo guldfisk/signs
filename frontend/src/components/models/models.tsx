@@ -1,9 +1,6 @@
 import axios from 'axios';
 
-import {Counter, MultiplicityList} from "./utils";
 import store from '../state/store';
-import wu from 'wu';
-import {prependOnceListener} from "cluster";
 
 
 export const apiPath = '/api/';
@@ -44,6 +41,21 @@ export class Sign extends Atomic {
 
   getVideoUrl = (): string => {
     return 'http://tegnsprog.dk/video/t/t_' + this.externalId + '.mp4';
+  };
+
+  setFamiliarity = (familiarity: number): Promise<any> => {
+    return axios.patch(
+      apiPath + 'sign/' + this.id + '/familiarity/',
+      {
+        familiarity
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Token ${store.getState().token}`,
+        }
+      }
+    )
   };
 
   public static nextTrainingSign(feedback: SignFeedback | null = null): Promise<FullSign> {
@@ -203,11 +215,12 @@ export class TrainingSet extends Atomic {
     )
   }
 
-  public static new(size: number): Promise<TrainingSet> {
+  public static new(size: number, familiarityThreshold: number): Promise<TrainingSet> {
     return axios.post(
       apiPath + 'training-set/',
       {
-        size
+        size,
+        familiarity_threshold: familiarityThreshold,
       },
       {
         headers: {

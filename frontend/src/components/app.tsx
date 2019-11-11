@@ -1,6 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
+import axios from 'axios';
+
 import {Router, Route, Switch} from "react-router-dom";
 
 import {connect, Provider} from 'react-redux';
@@ -16,6 +18,10 @@ import {loadUser} from "./auth/controller";
 import {Loading} from "./utils/utils";
 import SignInPage from './pages/authentication/SignInPage';
 import store from './state/store';
+
+
+axios.defaults.xsrfCookieName = 'csrftoken';
+axios.defaults.xsrfHeaderName = "X-CSRFTOKEN";
 
 
 interface RootProps {
