@@ -129,10 +129,20 @@ export default class TrainingSetPage extends React.Component<TrainingSetPageProp
   };
 
   render() {
+    const complete = this.state.trainingSet && this.state.trainingSet.signs.every(
+      sign => sign.familiarity >= this.state.trainingSet.threshold
+    );
 
     return <Container
       fluid
     >
+      {
+        complete ? <Alert
+          variant='primary'
+        >
+          Set complete
+        </Alert> : null
+      }
       <Row>
         <CreateTrainingSetForm
           handleSubmit={this.handleNewTrainingSet}
