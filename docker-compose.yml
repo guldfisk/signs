@@ -21,8 +21,8 @@ services:
     restart: always
     volumes:
       - .:/code
-      - static_volume:/opt/services/cubeapp/static
-      - media_volume:/opt/services/cubeapp/meda
+      - static_volume:/opt/services/signs/static
+      - media_volume:/opt/services/signs/meda
     depends_on:
       - db
     networks:

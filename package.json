@@ -1,5 +1,5 @@
 {
-  "name": "cubeapp",
+  "name": "signs",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -12,15 +12,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/guldfisk/cubeapp.git"
+    "url": "git+https://github.com/guldfisk/signs.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/guldfisk/cubeapp/issues"
+    "url": "https://github.com/guldfisk/signs/issues"
   },
-  "homepage": "https://github.com/guldfisk/cubeapp#readme",
+  "homepage": "https://github.com/guldfisk/signs#readme",
   "devDependencies": {
     "@babel/core": "^7.6.0",
     "@babel/preset-env": "^7.6.0",
