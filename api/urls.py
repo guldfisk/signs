@@ -16,4 +16,6 @@ urlpatterns = [
     path('training-set/', views.TrainingSetView.as_view()),
     path('training-set/sign/', views.TrainingView.as_view()),
 
+    path('repetition/', views.RepetitionView.as_view()),
+
 ]

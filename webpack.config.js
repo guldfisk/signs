@@ -1,3 +1,5 @@
+const keysTransformer = require('ts-transformer-keys/transformer').default;
+
 module.exports = {
 
   entry: {
@@ -18,8 +20,14 @@ module.exports = {
     rules: [
       {
         test: /\.tsx?$/,
-        use: 'ts-loader',
-        exclude: /node_modules/
+        loader: 'ts-loader',
+        options: {
+          getCustomTransformers: program => ({
+            before: [
+              keysTransformer(program)
+            ]
+          })
+        }
       },
       {
         test: /\.jsx?$/,

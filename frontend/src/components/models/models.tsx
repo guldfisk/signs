@@ -76,6 +76,25 @@ export class Sign extends Atomic {
     )
   }
 
+  public static repetitionSign(feedback: SignFeedback | null = null): Promise<FullSign> {
+    return axios.post(
+      apiPath + 'repetition/',
+      !feedback ? {} : {
+        sign: feedback.sign.id,
+        success: feedback.success,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Token ${store.getState().token}`,
+        }
+      }
+    ).then(
+      response => FullSign.fromRemote(response.data)
+    )
+  }
+
+
   public static fromRemote(remote: any): Sign {
     return new Sign(
       remote.id,
@@ -119,6 +138,23 @@ export class FullSignWithFamiliarity extends FullSign {
   constructor(id: string, externalId: number, atom: MinimalAtom, familiarity: number) {
     super(id, externalId, atom);
     this.familiarity = familiarity;
+  }
+
+
+  public static familiar(): Promise<FullSignWithFamiliarity[]> {
+    return axios.get(
+      apiPath + 'repetition/',
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Token ${store.getState().token}`,
+        }
+      }
+    ).then(
+      response => response.data.map(
+        (sign: any) => FullSignWithFamiliarity.fromRemote(sign)
+      )
+    )
   }
 
   public static fromRemote(remote: any): FullSignWithFamiliarity {

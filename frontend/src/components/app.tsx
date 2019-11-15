@@ -108,6 +108,10 @@ class RootComponent extends React.Component<RootProps> {
               <Nav.Link>Train</Nav.Link>
             </LinkContainer>
 
+            <LinkContainer to='/familiarities'>
+              <Nav.Link>Familiar Signs</Nav.Link>
+            </LinkContainer>
+
           </Nav>
           <Nav className="justify-content-end">
             {

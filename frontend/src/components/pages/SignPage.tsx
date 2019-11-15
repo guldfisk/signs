@@ -36,8 +36,8 @@ class SignPage extends React.Component<SignPageProps, SignPageState> {
     );
   }
 
-  handleSetFamiliarity = (): void => {
-    this.state.sign.setFamiliarity(255);
+  handleSetFamiliarity = (value: number): void => {
+    this.state.sign.setFamiliarity(value);
   };
 
   render() {
@@ -55,11 +55,18 @@ class SignPage extends React.Component<SignPageProps, SignPageState> {
           sign={this.state.sign}
         />
         {
-          this.props.authenticated && this.state.sign ? <Button
-            onClick={this.handleSetFamiliarity}
-          >
-            I know this one
-          </Button> : null
+          this.props.authenticated && this.state.sign ? [
+            <Button
+              onClick={() => this.handleSetFamiliarity(255)}
+            >
+              I know this one
+            </Button>,
+            <Button
+              onClick={() => this.handleSetFamiliarity(0)}
+            >
+              Don't know this one
+            </Button>,
+          ] : null
         }
       </div>
     }
@@ -81,8 +88,7 @@ const mapStateToProps = (state: any) => {
 
 
 const mapDispatchToProps = (dispatch: any) => {
-  return {
-  };
+  return {};
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(SignPage);

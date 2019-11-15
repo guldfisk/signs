@@ -1,5 +1,18 @@
-import {signingIn, authFailed, signInSuccess, reSignInSuccess, signOutSuccess} from "./actions";
+import {signingIn, authFailed, signInSuccess, reSignInSuccess, signOutSuccess, settingsUpdated} from "./actions";
+import {keys} from "ts-transformer-keys";
 
+
+export interface Settings {
+  defaultTrainingSetSize: number
+  defaultTrainingSetThreshold: number
+  trainingMode: string
+}
+
+const settingsDefaults: Settings = {
+  defaultTrainingSetSize: 20,
+  defaultTrainingSetThreshold: 3,
+  trainingMode: 'set',
+};
 
 interface StoreState {
   token: string
@@ -7,6 +20,7 @@ interface StoreState {
   errorMessage: string | null
   loading: boolean
   user: any
+  settings: Settings
 }
 
 const initialState: StoreState = {
@@ -15,6 +29,16 @@ const initialState: StoreState = {
   errorMessage: null,
   loading: true,
   user: null,
+  settings: (
+    Object.fromEntries(
+      keys<Settings>().map(
+        key => {
+          const fromStorage = localStorage.getItem(key);
+          return [key, fromStorage === null ? settingsDefaults[key] : fromStorage]
+        }
+      )
+    ) as any as Settings
+  ),
 };
 
 
@@ -45,6 +69,14 @@ export default function authReducer(state = initialState, action: any): StoreSta
 
     case authFailed:
       return {...state, loading: false, errorMessage: action.errorMessage};
+
+    case settingsUpdated:
+      Object.entries(action.settings).map(
+        ([key, value]) => {
+          localStorage.setItem(key, value.toString());
+        }
+      );
+      return {...state, settings: {...state.settings, ...action.settings}};
 
     default:
       return state;

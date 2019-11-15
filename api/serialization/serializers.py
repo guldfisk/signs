@@ -1,7 +1,3 @@
-import typing as t
-
-from distutils.util import strtobool
-
 from django.contrib.auth import authenticate, get_user_model
 from rest_framework import serializers
 
@@ -100,7 +96,6 @@ class TrainingSetSerializer(serializers.ModelSerializer):
 class TrainingSerializer(serializers.Serializer):
     sign = serializers.IntegerField(allow_null = True, required = False, default = None)
     success = serializers.BooleanField(allow_null = True, required = False, default = None)
-
 
     def update(self, instance, validated_data):
         raise NotImplemented()

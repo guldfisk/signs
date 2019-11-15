@@ -3,35 +3,27 @@ import React from "react";
 import {Link} from "react-router-dom";
 
 import BootstrapTable from 'react-bootstrap-table-next';
-import cellEditFactory from 'react-bootstrap-table2-editor';
 import paginationFactory from 'react-bootstrap-table2-paginator';
 import ToolkitProvider, {Search} from 'react-bootstrap-table2-toolkit';
 
-import {apiPath, Atom, FullSign, Sign, TrainingSet} from "../models/models";
-import Row from "react-bootstrap/Row";
-import {SignVideo} from "./video";
-import Container from "react-bootstrap/Container";
-import Col from "react-bootstrap/Col";
+import {FullSignWithFamiliarity} from "../models/models";
 import {string} from "prop-types";
 
 
-interface TrainingSetViewProps {
-  trainingSet: TrainingSet;
+interface SignsViewProps {
+  signs: FullSignWithFamiliarity[];
+  familiarityThreshold: number;
 }
 
 
-interface TrainingSetViewState {
-  sign: FullSign | null;
+interface SignsViewState {
 }
 
 
-export default class TrainingSetView extends React.Component<TrainingSetViewProps, TrainingSetViewState> {
+export default class SignsView extends React.Component<SignsViewProps, SignsViewState> {
 
-  constructor(props: TrainingSetViewProps) {
+  constructor(props: SignsViewProps) {
     super(props);
-    this.state = {
-      sign: null,
-    };
   }
 
   render() {
@@ -68,7 +60,7 @@ export default class TrainingSetView extends React.Component<TrainingSetViewProp
       },
     ];
 
-    const data = this.props.trainingSet.signs.map(
+    const data = this.props.signs.map(
       sign => {
         return {
           key: sign.id,
@@ -81,7 +73,7 @@ export default class TrainingSetView extends React.Component<TrainingSetViewProp
           familiarity: <span
             style={
               {
-                color: sign.familiarity >= this.props.trainingSet.threshold ? 'green' : 'red',
+                color: sign.familiarity >= this.props.familiarityThreshold ? 'green' : 'red',
               }
             }
           >

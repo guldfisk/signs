@@ -9,6 +9,7 @@ import AtomPage from "../pages/AtomPage";
 import TrainingPage from "../pages/TrainingPage";
 import TrainingSetPage from "../pages/TrainingSetPage";
 import HomePage from '../pages/HomePage';
+import FamiliarityPage from "../pages/FamiliarityPage";
 
 
 export const routes: [
@@ -23,6 +24,7 @@ export const routes: [
   ['/sign-up', SignUpPage, false, {}],
   ['/training-set', TrainingSetPage, true, {}],
   ['/train', TrainingPage, true, {}],
+  ['/familiarities', FamiliarityPage, true, {}],
   ['/atom/:id(\\d+)', AtomPage, false, {}],
   ['/sign/:id(\\d+)', SignPage, false, {}],
   [undefined, NotFoundPage, false, {}],

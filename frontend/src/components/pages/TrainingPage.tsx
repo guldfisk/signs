@@ -7,9 +7,14 @@ import {SignVideo} from "../views/video";
 import Row from "react-bootstrap/Row";
 import {Redirect} from "react-router";
 import Col from "react-bootstrap/Col";
+import {Settings} from "../state/reducers";
+import {updateSettings} from "../state/settings";
+import {connect} from "react-redux";
 
 
 interface TrainingPageProps {
+  settings: Settings
+  updateSettings: (settings: { [key: string]: string }) => void
 }
 
 interface TrainingPageState {
@@ -18,7 +23,7 @@ interface TrainingPageState {
   redirect: boolean
 }
 
-export default class TrainingPage extends React.Component<TrainingPageProps, TrainingPageState> {
+class TrainingPage extends React.Component<TrainingPageProps, TrainingPageState> {
 
   constructor(props: TrainingPageProps) {
     super(props);
@@ -34,7 +39,9 @@ export default class TrainingPage extends React.Component<TrainingPageProps, Tra
   }
 
   handleGetSign = (success: boolean | null = null): void => {
-    Sign.nextTrainingSign(
+    (
+      this.props.settings.trainingMode === 'set' ? Sign.nextTrainingSign : Sign.repetitionSign
+    )(
       success === null ? null : new SignFeedback(
         this.state.sign,
         success,
@@ -63,6 +70,19 @@ export default class TrainingPage extends React.Component<TrainingPageProps, Tra
     return <Container
       fluid
     >
+      <Row>
+        <Button
+          onClick={
+            () => this.props.updateSettings(
+              {
+                trainingMode: this.props.settings.trainingMode === 'set' ? 'repetition' : 'set'
+              }
+            )
+          }
+        >
+          {'mode: ' + this.props.settings.trainingMode}
+        </Button>
+      </Row>
       {
         this.state.sign ? <Col>
           <Row>
@@ -104,3 +124,20 @@ export default class TrainingPage extends React.Component<TrainingPageProps, Tra
   }
 
 }
+
+const mapStateToProps = (state: any) => {
+  return {
+    settings: state.settings,
+  };
+};
+
+
+const mapDispatchToProps = (dispatch: any) => {
+  return {
+    updateSettings: (settings: { [key: string]: string }) => {
+      return dispatch(updateSettings(settings))
+    }
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(TrainingPage);

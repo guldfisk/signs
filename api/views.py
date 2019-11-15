@@ -1,3 +1,4 @@
+import json
 import string
 import typing as t
 
@@ -113,7 +114,7 @@ class SignFamiliarity(generics.GenericAPIView):
     def patch(self, request: Request, pk: int) -> Response:
         try:
             value = int(request.data['familiarity'])
-            if not value in range(1, 256):
+            if not value in range(0, 256):
                 raise ValueError
         except (ValueError, KeyError):
             return Response(status = status.HTTP_400_BAD_REQUEST)
@@ -292,6 +293,90 @@ class TrainingView(generics.GenericAPIView):
 
         if sign is None:
             return Response('Set completed', status = status.HTTP_204_NO_CONTENT)
+
+        return Response(
+            serializers.FullSignSerializer(
+                sign
+            ).data
+        )
+
+
+class RepetitionView(generics.GenericAPIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    serializer_class = serializers.TrainingSerializer
+
+    def get(self, request: Request) -> Response:
+        signs = models.Sign.objects.annotate(
+                familiarity = Sum(
+                    Case(
+                        When(
+                            familiarities__user = request.user,
+                            then = F('familiarities__level')
+                        ),
+                        default = 0,
+                        output_field = IntegerField(),
+                    )
+                )
+            ).filter(
+                familiarity__gte = 1
+            ).order_by('-familiarity', 'atom__meaning')
+
+        return Response(
+            [
+                serializers.FullSignSerializerWithFamiliarity(
+                    sign
+                ).data
+                for sign in
+                signs
+            ]
+        )
+
+
+    def post(self, request: Request) -> Response:
+        serializer: serializers.TrainingSerializer = self.get_serializer(data = request.data)
+        serializer.is_valid(raise_exception = True)
+
+        sign_id, success = serializer.validated_data['sign'], serializer.validated_data['success']
+
+        if sign_id is not None:
+            if success is None:
+                return Response(status = status.HTTP_400_BAD_REQUEST)
+
+            try:
+                sign = models.Sign.objects.get(id = sign_id)
+            except models.Sign.DoesNotExist:
+                raise Http404
+
+            familiarity, _ = models.Familiarity.objects.get_or_create(
+                user = request.user,
+                sign = sign,
+            )
+
+            if success:
+                familiarity.level += 1
+            else:
+                familiarity.level = 0
+
+            familiarity.save(update_fields = ('level',))
+
+        sign = models.Sign.objects.annotate(
+                familiarity = Sum(
+                    Case(
+                        When(
+                            familiarities__user = request.user,
+                            then = F('familiarities__level')
+                        ),
+                        default = 0,
+                        output_field = IntegerField(),
+                    )
+                )
+            ).filter(
+                familiarity__gte = 1
+            ).order_by('?').last()
+
+        if sign is None:
+            return Response('No familiarity', status = status.HTTP_400_BAD_REQUEST)
 
         return Response(
             serializers.FullSignSerializer(
