@@ -6,12 +6,15 @@ export interface Settings {
   defaultTrainingSetSize: number
   defaultTrainingSetThreshold: number
   trainingMode: string
+  includeReverse: string
 }
+
 
 const settingsDefaults: Settings = {
   defaultTrainingSetSize: 20,
   defaultTrainingSetThreshold: 3,
   trainingMode: 'set',
+  includeReverse: '',
 };
 
 interface StoreState {
@@ -22,6 +25,7 @@ interface StoreState {
   user: any
   settings: Settings
 }
+
 
 const initialState: StoreState = {
   token: localStorage.getItem("token"),

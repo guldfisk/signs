@@ -21,6 +21,8 @@ interface TrainingPageState {
   sign: FullSign | null
   showMeaning: boolean
   redirect: boolean
+  showVideoFirst: boolean
+  loading: boolean
 }
 
 class TrainingPage extends React.Component<TrainingPageProps, TrainingPageState> {
@@ -31,6 +33,8 @@ class TrainingPage extends React.Component<TrainingPageProps, TrainingPageState>
       sign: null,
       showMeaning: false,
       redirect: false,
+      showVideoFirst: true,
+      loading: false,
     };
   }
 
@@ -39,27 +43,42 @@ class TrainingPage extends React.Component<TrainingPageProps, TrainingPageState>
   }
 
   handleGetSign = (success: boolean | null = null): void => {
-    (
-      this.props.settings.trainingMode === 'set' ? Sign.nextTrainingSign : Sign.repetitionSign
-    )(
-      success === null ? null : new SignFeedback(
-        this.state.sign,
-        success,
-      )
-    ).then(
-      sign => {
-        this.setState(
-          {
-            sign,
-            showMeaning: false,
+    console.log(this.props);
+    console.log(this.props.settings);
+    console.log(this.props.settings.includeReverse);
+    this.setState(
+      {loading: true},
+      () => {
+        (
+          this.props.settings.trainingMode === 'set' ? Sign.nextTrainingSign : Sign.repetitionSign
+        )(
+          success === null ? null : new SignFeedback(
+            this.state.sign,
+            success,
+          )
+        ).then(
+          sign => {
+            this.setState(
+              {
+                sign,
+                showMeaning: false,
+                loading: false,
+                showVideoFirst: !this.props.settings.includeReverse || Math.random() > .5,
+              }
+            )
+          }
+        ).catch(
+          error => {
+            this.setState(
+              {
+                redirect: true,
+              }
+            )
           }
         )
       }
-    ).catch(
-      error => {
-        this.setState({redirect: true})
-      }
     )
+
   };
 
   render() {
@@ -73,34 +92,30 @@ class TrainingPage extends React.Component<TrainingPageProps, TrainingPageState>
       <Row>
         <Button
           onClick={
-            () => this.props.updateSettings(
-              {
-                trainingMode: this.props.settings.trainingMode === 'set' ? 'repetition' : 'set'
-              }
-            )
+            () => {
+              this.props.updateSettings(
+                {
+                  trainingMode: this.props.settings.trainingMode === 'set' ? 'repetition' : 'set'
+                }
+              );
+              this.handleGetSign();
+            }
           }
         >
           {'mode: ' + this.props.settings.trainingMode}
         </Button>
+        <Button
+          onClick={
+            () => this.props.updateSettings(
+              {
+                includeReverse: this.props.settings.includeReverse ? '' : 'true',
+              }
+            )
+          }
+        >
+          {this.props.settings.includeReverse ? 'including meaning first' : 'excluding meaning first'}
+        </Button>
       </Row>
-      {
-        this.state.sign ? <Col>
-          <Row>
-            <SignVideo sign={this.state.sign}/>
-          </Row>
-          <Row>
-            {
-              this.state.showMeaning ?
-                this.state.sign.atom.meaning :
-                <Button
-                  onClick={() => this.setState({showMeaning: true})}
-                >
-                  Show sign
-                </Button>
-            }
-          </Row>
-        </Col> : null
-      }
       {
         this.state.showMeaning ? <>
           <Row>
@@ -119,6 +134,30 @@ class TrainingPage extends React.Component<TrainingPageProps, TrainingPageState>
             </Button>
           </Row>
         </> : null
+      }
+      {
+        this.state.sign ? <Col>
+          <Row>
+            {
+              this.state.showMeaning ?
+                !this.state.showVideoFirst ?
+                  <SignVideo sign={this.state.sign}/> :
+                  <h3>{this.state.sign.atom.meaning}</h3> :
+                <Button
+                  onClick={() => this.setState({showMeaning: true})}
+                >
+                  Show sign
+                </Button>
+            }
+          </Row>
+          <Row>
+            {
+              this.state.showVideoFirst ?
+                <SignVideo sign={this.state.sign}/> :
+                <h3>{this.state.sign.atom.meaning}</h3>
+            }
+          </Row>
+        </Col> : null
       }
     </Container>
   }

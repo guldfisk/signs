@@ -276,7 +276,7 @@ class TrainingView(generics.GenericAPIView):
 
             familiarity.save(update_fields = ('level',))
 
-        sign = training_set.signs.annotate(
+        signs = training_set.signs.annotate(
             familiarity = Sum(
                 Case(
                     When(
@@ -289,14 +289,18 @@ class TrainingView(generics.GenericAPIView):
             )
         ).filter(
             familiarity__lt = training_set.threshold
-        ).order_by('?').first()
+        ).order_by('?')[:2]
 
-        if sign is None:
+        if not signs:
             return Response('Set completed', status = status.HTTP_204_NO_CONTENT)
 
         return Response(
             serializers.FullSignSerializer(
-                sign
+                (
+                    signs[1]
+                    if sign_id is not None and len(signs) > 1 and signs[0].id == sign_id else
+                    signs[0]
+                )
             ).data
         )
 
@@ -308,19 +312,19 @@ class RepetitionView(generics.GenericAPIView):
 
     def get(self, request: Request) -> Response:
         signs = models.Sign.objects.annotate(
-                familiarity = Sum(
-                    Case(
-                        When(
-                            familiarities__user = request.user,
-                            then = F('familiarities__level')
-                        ),
-                        default = 0,
-                        output_field = IntegerField(),
-                    )
+            familiarity = Sum(
+                Case(
+                    When(
+                        familiarities__user = request.user,
+                        then = F('familiarities__level')
+                    ),
+                    default = 0,
+                    output_field = IntegerField(),
                 )
-            ).filter(
-                familiarity__gte = 1
-            ).order_by('-familiarity', 'atom__meaning')
+            )
+        ).filter(
+            familiarity__gte = 1
+        ).order_by('-familiarity', 'atom__meaning')
 
         return Response(
             [
@@ -331,7 +335,6 @@ class RepetitionView(generics.GenericAPIView):
                 signs
             ]
         )
-
 
     def post(self, request: Request) -> Response:
         serializer: serializers.TrainingSerializer = self.get_serializer(data = request.data)
@@ -360,26 +363,31 @@ class RepetitionView(generics.GenericAPIView):
 
             familiarity.save(update_fields = ('level',))
 
-        sign = models.Sign.objects.annotate(
-                familiarity = Sum(
-                    Case(
-                        When(
-                            familiarities__user = request.user,
-                            then = F('familiarities__level')
-                        ),
-                        default = 0,
-                        output_field = IntegerField(),
-                    )
+        signs = models.Sign.objects.annotate(
+            familiarity = Sum(
+                Case(
+                    When(
+                        familiarities__user = request.user,
+                        then = F('familiarities__level')
+                    ),
+                    default = 0,
+                    output_field = IntegerField(),
                 )
-            ).filter(
-                familiarity__gte = 1
-            ).order_by('?').last()
+            )
+        ).filter(
+            familiarity__gte = 1
+        ).order_by('?')[:2]
 
-        if sign is None:
+        if not signs:
             return Response('No familiarity', status = status.HTTP_400_BAD_REQUEST)
 
         return Response(
             serializers.FullSignSerializer(
-                sign
+                (
+                    signs[1]
+                    if sign_id is not None and len(signs) > 1 and signs[0].id == sign_id else
+                    signs[0]
+                )
             ).data
         )
+
