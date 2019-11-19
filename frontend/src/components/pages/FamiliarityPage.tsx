@@ -74,7 +74,7 @@ class FamiliarityPage extends React.Component<FamiliarityPageProps, FamiliarityP
             <Loading/> :
             <SignsView
               signs={this.state.signs}
-              familiarityThreshold={255}
+              familiarityThreshold={this.props.settings.repetitionThreshold}
             />
         }
       </Row>
