@@ -308,7 +308,7 @@ class TrainingView(generics.GenericAPIView):
 class RepetitionView(generics.GenericAPIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
-    serializer_class = serializers.TrainingSerializer
+    serializer_class = serializers.RepetitionTrainingSerializer
 
     def get(self, request: Request) -> Response:
         signs = models.Sign.objects.annotate(
@@ -337,7 +337,7 @@ class RepetitionView(generics.GenericAPIView):
         )
 
     def post(self, request: Request) -> Response:
-        serializer: serializers.TrainingSerializer = self.get_serializer(data = request.data)
+        serializer: serializers.RepetitionTrainingSerializer = self.get_serializer(data = request.data)
         serializer.is_valid(raise_exception = True)
 
         sign_id, success = serializer.validated_data['sign'], serializer.validated_data['success']
@@ -375,7 +375,8 @@ class RepetitionView(generics.GenericAPIView):
                 )
             )
         ).filter(
-            familiarity__gte = 1
+            familiarity__gte = 1,
+            familiarity__lt = serializer.validated_data['threshold'],
         ).order_by('?')[:2]
 
         if not signs:

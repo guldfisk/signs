@@ -17,13 +17,15 @@ interface TrainingPageProps {
   updateSettings: (settings: { [key: string]: string }) => void
 }
 
+
 interface TrainingPageState {
   sign: FullSign | null
   showMeaning: boolean
-  redirect: boolean
+  redirect: string | null
   showVideoFirst: boolean
   loading: boolean
 }
+
 
 class TrainingPage extends React.Component<TrainingPageProps, TrainingPageState> {
 
@@ -32,7 +34,7 @@ class TrainingPage extends React.Component<TrainingPageProps, TrainingPageState>
     this.state = {
       sign: null,
       showMeaning: false,
-      redirect: false,
+      redirect: null,
       showVideoFirst: true,
       loading: false,
     };
@@ -43,20 +45,22 @@ class TrainingPage extends React.Component<TrainingPageProps, TrainingPageState>
   }
 
   handleGetSign = (success: boolean | null = null): void => {
-    console.log(this.props);
-    console.log(this.props.settings);
-    console.log(this.props.settings.includeReverse);
     this.setState(
       {loading: true},
       () => {
-        (
-          this.props.settings.trainingMode === 'set' ? Sign.nextTrainingSign : Sign.repetitionSign
-        )(
-          success === null ? null : new SignFeedback(
-            this.state.sign,
-            success,
-          )
-        ).then(
+        const feedback = success === null ? null : new SignFeedback(
+          this.state.sign,
+          success,
+        );
+
+        const promise = this.props.settings.trainingMode === 'set' ?
+          Sign.nextTrainingSign(feedback) :
+          Sign.repetitionSign(
+            this.props.settings.repetitionThreshold,
+            feedback,
+          );
+
+        promise.then(
           sign => {
             this.setState(
               {
@@ -71,9 +75,14 @@ class TrainingPage extends React.Component<TrainingPageProps, TrainingPageState>
           error => {
             this.setState(
               {
-                redirect: true,
+                redirect: this.props.settings.trainingMode === 'set' ? '/training-set' : 'familiarities',
               }
-            )
+            );
+            this.props.updateSettings(
+              {
+                trainingMode: this.props.settings.trainingMode === 'set' ? 'repetition' : 'set'
+              }
+            );
           }
         )
       }
@@ -82,8 +91,8 @@ class TrainingPage extends React.Component<TrainingPageProps, TrainingPageState>
   };
 
   render() {
-    if (this.state.redirect) {
-      return <Redirect to='/training-set'/>
+    if (this.state.redirect !== null) {
+      return <Redirect to={this.state.redirect}/>
     }
 
     return <Container
@@ -115,6 +124,19 @@ class TrainingPage extends React.Component<TrainingPageProps, TrainingPageState>
         >
           {this.props.settings.includeReverse ? 'including meaning first' : 'excluding meaning first'}
         </Button>
+        {
+          this.props.settings.trainingMode === 'repetition' ? <input
+            type={'number'}
+            defaultValue={this.props.settings.repetitionThreshold.toString()}
+            onChange={
+              (event) => {
+                if (event.target.value) {
+                  this.props.updateSettings({repetitionThreshold: event.target.value})
+                }
+              }
+            }
+          /> : null
+        }
       </Row>
       {
         this.state.showMeaning ? <>
@@ -124,11 +146,13 @@ class TrainingPage extends React.Component<TrainingPageProps, TrainingPageState>
           <Row>
             <Button
               onClick={() => this.handleGetSign(true)}
+              disabled={this.state.loading}
             >
               yes
             </Button>
             <Button
               onClick={() => this.handleGetSign(false)}
+              disabled={this.state.loading}
             >
               no
             </Button>

@@ -8,6 +8,7 @@ import {connect} from "react-redux";
 import {Settings} from "../state/reducers";
 import {updateSettings} from "../state/settings";
 import SignsView from "../views/signs";
+import Alert from "react-bootstrap/Alert";
 
 
 interface FamiliarityPageProps {
@@ -39,10 +40,34 @@ class FamiliarityPage extends React.Component<FamiliarityPageProps, FamiliarityP
   }
 
   render() {
+    const complete = this.state.signs && this.state.signs.every(
+      sign => sign.familiarity >= this.props.settings.repetitionThreshold
+    );
 
     return <Container
       fluid
     >
+      {
+        complete ? <Alert
+          variant='primary'
+        >
+          All repetition above threshold
+        </Alert> : null
+      }
+      <Row>
+        <label>Repetition threshold</label>
+        <input
+          type={'number'}
+          defaultValue={this.props.settings.repetitionThreshold.toString()}
+          onChange={
+            (event) => {
+              if (event.target.value) {
+                this.props.updateSettings({repetitionThreshold: event.target.value})
+              }
+            }
+          }
+        />
+      </Row>
       <Row>
         {
           this.state.signs === null ?

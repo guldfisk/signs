@@ -102,3 +102,8 @@ class TrainingSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         raise NotImplemented()
+
+
+class RepetitionTrainingSerializer(TrainingSerializer):
+    threshold = serializers.IntegerField()
+

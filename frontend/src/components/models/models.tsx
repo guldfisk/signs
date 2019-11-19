@@ -76,10 +76,13 @@ export class Sign extends Atomic {
     )
   }
 
-  public static repetitionSign(feedback: SignFeedback | null = null): Promise<FullSign> {
+  public static repetitionSign(threshold: number, feedback: SignFeedback | null = null): Promise<FullSign> {
     return axios.post(
       apiPath + 'repetition/',
-      !feedback ? {} : {
+      !feedback ? {
+        threshold,
+      } : {
+        threshold,
         sign: feedback.sign.id,
         success: feedback.success,
       },
