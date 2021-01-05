@@ -27,7 +27,7 @@
     "@babel/preset-react": "^7.0.0",
     "@types/wu": "^2.1.39",
     "@webpack-contrib/config-loader": "^1.2.1",
-    "axios": "^0.19.0",
+    "axios": "^0.21.1",
     "babel-loader": "^8.0.6",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "boostrap": "^2.0.0",
