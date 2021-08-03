@@ -15,12 +15,6 @@ _config_parser.read(SECRETS_PATH)
 DATABASE_PASSWORD = _config_parser['client']['password']
 DATABASE_HOST = _config_parser['client']['host']
 
-# MAILGUN_KEY = _config_parser['default']['mailgun_key']
-# MAILGUN_DOMAIN = _config_parser['default']['mailgun_domain']
-
-# SPACES_PUBLIC_KEY = _config_parser['default']['spaces_public_key']
-# SPACES_SECRET_KEY = _config_parser['default']['spaces_secret_key']
-
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 SECRET_KEY = _config_parser['default']['secret_key']
@@ -29,7 +23,6 @@ DEBUG = strtobool(os.environ['DEBUG'])
 
 ALLOWED_HOSTS = json.loads(_config_parser['default']['allowed_hosts']) if not DEBUG else []
 HOST = _config_parser['default']['host']
-
 
 INSTALLED_APPS = [
     'rest_framework',
@@ -78,19 +71,14 @@ WSGI_APPLICATION = 'signs.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'signs',
         'USER': 'phdk',
         'PASSWORD': DATABASE_PASSWORD,
         'HOST': DATABASE_HOST,
-        'PORT': '3306',
-        'OPTIONS': {
-            'charset': 'utf8',
-            'use_unicode': True,
-        },
-    }
+        'PORT': '',
+    },
 }
-
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -107,7 +95,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
@@ -118,7 +105,6 @@ USE_L10N = False
 
 USE_TZ = True
 
-
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join('/', 'opt', 'services', 'signs', 'static')
 MEDIA_ROOT = os.path.join('/', 'opt', 'services', 'signs', 'media')
@@ -126,7 +112,6 @@ MEDIA_ROOT = os.path.join('/', 'opt', 'services', 'signs', 'media')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
-
 
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': (

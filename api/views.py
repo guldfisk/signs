@@ -1,29 +1,16 @@
-import json
-import string
-import typing as t
-
-import datetime
-import hashlib
-import random
-
-from distutils.util import strtobool
-
 from django.db import transaction
 from django.db.models import Sum, Case, When, IntegerField, F
-from django.http import HttpResponse, HttpRequest, Http404
+from django.http import Http404
 from django.contrib.auth import get_user_model
 from django.db.utils import IntegrityError
-from django.template.loader import get_template
-from django.conf import settings
-from knox.auth import TokenAuthentication
 
 from rest_framework import status, generics, permissions
-from rest_framework.decorators import api_view
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 
 from knox.models import AuthToken
+from knox.auth import TokenAuthentication
 
 from api import models
 from api.serialization import serializers
@@ -227,12 +214,8 @@ class TrainingSetView(generics.GenericAPIView):
                     ).data
                     for sign in
                     sorted(
-                        sorted(
-                            signs,
-                            key = lambda sign: sign.atom.meaning,
-                        ),
-                        key = lambda sign: sign.familiarity,
-                        reverse = True,
+                        signs,
+                        key = lambda sign: (-sign.familiarity, sign.atom.meaning),
                     )
                 ]
             }
@@ -391,4 +374,3 @@ class RepetitionView(generics.GenericAPIView):
                 )
             ).data
         )
-

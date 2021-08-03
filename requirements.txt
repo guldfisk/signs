@@ -16,3 +16,4 @@ django-rest-knox
 gunicorn
 django-cors-headers
 boto3
+psycopg2

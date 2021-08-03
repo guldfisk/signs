@@ -2,16 +2,14 @@ version: '3.3'
 
 services:
   db:
-    image: mysql:5.7
+    image: postgres
     restart: always
     environment:
-      MYSQL_DATABASE: 'signs'
-      MYSQL_USER: 'phdk'
-      MYSQL_PASSWORD: "${DB_PASSWORD}"
-      MYSQL_ROOT_PASSWORD: "${DB_PASSWORD}"
+      POSTGRES_DB: 'signs'
+      POSTGRES_USER: 'phdk'
+      POSTGRES_PASSWORD: "${DB_PASSWORD}"
+      POSTGRES_ROOT_PASSWORD: "${DB_PASSWORD}"
       DEBUG: 1
-    volumes:
-      - db:/var/lib/mysql
     networks:
       - database_network
 
