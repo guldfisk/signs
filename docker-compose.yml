@@ -15,7 +15,7 @@ services:
 
   web:
     build: .
-    image: app-image
+    image: sign-app-image
     restart: always
     volumes:
       - .:/code

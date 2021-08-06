@@ -3,11 +3,11 @@ from rest_framework import serializers
 
 from api import models
 
+
 DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
 
 
 class UserSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = get_user_model()
         fields = ('id', 'username')
@@ -43,14 +43,12 @@ class LoginSerializer(serializers.Serializer):
 
 
 class SignSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = models.Sign
         fields = ('id', 'external_id',)
 
 
 class MinimalSemanticAtomSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = models.SemanticAtom
         fields = ('id', 'meaning')
@@ -89,10 +87,6 @@ class TrainingSetSerializer(serializers.ModelSerializer):
         fields = ('id', 'threshold', 'size', 'signs')
 
 
-# class TrainingSetSerializerWithFamiliarity(TrainingSetSerializer):
-#     signs = FullSignSerializerWithFamiliarity(many = True)
-
-
 class TrainingSerializer(serializers.Serializer):
     sign = serializers.IntegerField(allow_null = True, required = False, default = None)
     success = serializers.BooleanField(allow_null = True, required = False, default = None)
@@ -106,4 +100,3 @@ class TrainingSerializer(serializers.Serializer):
 
 class RepetitionTrainingSerializer(TrainingSerializer):
     threshold = serializers.IntegerField()
-
