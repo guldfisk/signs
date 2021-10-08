@@ -19,6 +19,8 @@ import {Loading} from "./utils/utils";
 import SignInPage from './pages/authentication/SignInPage';
 import store from './state/store';
 
+import "../styling/global.css";
+
 
 axios.defaults.xsrfCookieName = 'csrftoken';
 axios.defaults.xsrfHeaderName = "X-CSRFTOKEN";
@@ -59,7 +61,6 @@ class RootComponent extends React.Component<RootProps> {
     routes: [string | undefined, (typeof React.Component) | React.FunctionComponent, boolean, { [key: string]: any }][]
   ) => {
     return <Switch>
-
       {
         routes.map(
           ([path, component, isPrivate, args]) => {
@@ -110,6 +111,14 @@ class RootComponent extends React.Component<RootProps> {
 
             <LinkContainer to='/familiarities'>
               <Nav.Link>Familiar Signs</Nav.Link>
+            </LinkContainer>
+
+            <LinkContainer to='/sign/search'>
+              <Nav.Link>Search</Nav.Link>
+            </LinkContainer>
+
+            <LinkContainer to='/training-sets/'>
+              <Nav.Link>All Sets</Nav.Link>
             </LinkContainer>
 
           </Nav>

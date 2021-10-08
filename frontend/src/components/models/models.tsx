@@ -6,6 +6,12 @@ import store from '../state/store';
 export const apiPath = '/api/';
 
 
+export interface PaginatedResponse<T> {
+  objects: T[]
+  hits: number
+}
+
+
 export class Atomic {
   id: string | number;
 
@@ -32,15 +38,21 @@ export class SignFeedback {
 }
 
 export class Sign extends Atomic {
-  externalId: number;
+  videoId: number;
+  thumbnailId: number;
 
-  constructor(id: string, externalId: number) {
+  constructor(id: string, videoId: number, thumbnailId: number) {
     super(id);
-    this.externalId = externalId;
+    this.videoId = videoId;
+    this.thumbnailId = thumbnailId;
   }
 
   getVideoUrl = (): string => {
-    return 'http://tegnsprog.dk/video/t/t_' + this.externalId + '.mp4';
+    return 'http://tegnsprog.dk/video/t/t_' + this.videoId + '.mp4';
+  };
+
+  getThumbnailUrl = (): string => {
+    return 'http://tegnsprog.dk/billede_t/f_' + this.thumbnailId + '.jpg';
   };
 
   setFamiliarity = (familiarity: number): Promise<any> => {
@@ -51,8 +63,8 @@ export class Sign extends Atomic {
       },
       {
         headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Token ${store.getState().token}`,
+          'Content-Type': 'application/json',
+          'Authorization': `Token ${store.getState().token}`,
         }
       }
     )
@@ -67,8 +79,8 @@ export class Sign extends Atomic {
       },
       {
         headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Token ${store.getState().token}`,
+          'Content-Type': 'application/json',
+          'Authorization': `Token ${store.getState().token}`,
         }
       }
     ).then(
@@ -88,8 +100,8 @@ export class Sign extends Atomic {
       },
       {
         headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Token ${store.getState().token}`,
+          'Content-Type': 'application/json',
+          'Authorization': `Token ${store.getState().token}`,
         }
       }
     ).then(
@@ -101,7 +113,8 @@ export class Sign extends Atomic {
   public static fromRemote(remote: any): Sign {
     return new Sign(
       remote.id,
-      remote.external_id,
+      remote.video_id,
+      remote.thumbnail_id,
     )
   }
 
@@ -111,15 +124,16 @@ export class Sign extends Atomic {
 export class FullSign extends Sign {
   atom: MinimalAtom;
 
-  constructor(id: string, externalId: number, atom: MinimalAtom) {
-    super(id, externalId);
+  constructor(id: string, videoId: number, thumbnailId: number, atom: MinimalAtom) {
+    super(id, videoId, thumbnailId);
     this.atom = atom;
   }
 
   public static fromRemote(remote: any): FullSign {
     return new FullSign(
       remote.id,
-      remote.external_id,
+      remote.video_id,
+      remote.thumbnail_id,
       MinimalAtom.fromRemote(remote.atom),
     )
   }
@@ -132,25 +146,45 @@ export class FullSign extends Sign {
     )
   }
 
+  public static search(query: string, limit: number = 50, offset: number = 0): Promise<PaginatedResponse<FullSign>> {
+    return axios.get(
+      `${apiPath}sign/search/${query}/`,
+      {
+        params: {
+          limit,
+          offset,
+        }
+      }
+    ).then(
+      response => {
+        return {
+          objects: response.data.results.map(
+            (wish: any) => FullSign.fromRemote(wish)
+          ),
+          hits: response.data.count,
+        }
+      }
+    )
+  }
+
 }
 
 
 export class FullSignWithFamiliarity extends FullSign {
   familiarity: number;
 
-  constructor(id: string, externalId: number, atom: MinimalAtom, familiarity: number) {
-    super(id, externalId, atom);
+  constructor(id: string, externalId: number, thumbnailId: number, atom: MinimalAtom, familiarity: number) {
+    super(id, externalId, thumbnailId, atom);
     this.familiarity = familiarity;
   }
-
 
   public static familiar(): Promise<FullSignWithFamiliarity[]> {
     return axios.get(
       apiPath + 'repetition/',
       {
         headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Token ${store.getState().token}`,
+          'Content-Type': 'application/json',
+          'Authorization': `Token ${store.getState().token}`,
         }
       }
     ).then(
@@ -163,7 +197,8 @@ export class FullSignWithFamiliarity extends FullSign {
   public static fromRemote(remote: any): FullSignWithFamiliarity {
     return new FullSignWithFamiliarity(
       remote.id,
-      remote.external_id,
+      remote.video_id,
+      remote.thumbnail_id,
       MinimalAtom.fromRemote(remote.atom),
       remote.familiarity,
     )
@@ -174,45 +209,23 @@ export class FullSignWithFamiliarity extends FullSign {
 
 export class MinimalAtom extends Atomic {
   meaning: string;
+  externalId: string;
 
-  constructor(id: string, meaning: string) {
+  constructor(id: string, meaning: string, externalId: string) {
     super(id);
     this.meaning = meaning;
+    this.externalId = externalId;
+  }
+
+  getExternalLink = (): string => {
+    return `http://tegnsprog.dk/#|soeg|'tekst'${this.meaning}|tegn|${this.externalId}`
   }
 
   public static fromRemote(remote: any): MinimalAtom {
     return new MinimalAtom(
       remote.id,
       remote.meaning,
-    )
-  }
-
-}
-
-
-export class Atom extends MinimalAtom {
-  signs: Sign[];
-
-  constructor(id: string, meaning: string, signs: Sign[]) {
-    super(id, meaning);
-    this.signs = signs;
-  }
-
-  public static fromRemote(remote: any): Atom {
-    return new Atom(
-      remote.id,
-      remote.meaning,
-      remote.signs.map(
-        (sign: any) => Sign.fromRemote(sign)
-      ),
-    )
-  }
-
-  public static get(id: string): Promise<Atom> {
-    return axios.get(
-      apiPath + 'atom/' + id + '/',
-    ).then(
-      response => Atom.fromRemote(response.data)
+      remote.external_id,
     )
   }
 
@@ -220,14 +233,14 @@ export class Atom extends MinimalAtom {
 
 
 export class TrainingSet extends Atomic {
-  threshold: number;
-  size: number;
-  signs: FullSignWithFamiliarity[];
+  threshold: number
+  name: string
+  signs: FullSignWithFamiliarity[]
 
-  constructor(id: number | string, threshold: number, size: number, signs: FullSignWithFamiliarity[]) {
+  constructor(id: number | string, threshold: number, name: string, signs: FullSignWithFamiliarity[]) {
     super(id);
     this.threshold = threshold;
-    this.size = size;
+    this.name = name;
     this.signs = signs;
   }
 
@@ -235,18 +248,82 @@ export class TrainingSet extends Atomic {
     return new TrainingSet(
       remote.id,
       remote.threshold,
-      remote.size,
+      remote.name,
       remote.signs.map((sign: any) => FullSignWithFamiliarity.fromRemote(sign)),
     )
   }
 
-  public static get(): Promise<TrainingSet> {
+  contains = (sign: Sign): boolean => {
+    return this.signs.some(s => s.id == sign.id)
+  }
+
+  train = (): Promise<TrainingSet> => {
+    return axios.post(
+      `${apiPath}training-set/${this.id}/`,
+      {},
+      {
+        headers: {
+          'Content-Type': `application/json`,
+          'Authorization': `Token ${store.getState().token}`,
+        }
+      },
+    ).then(
+      response => TrainingSet.fromRemote(response.data)
+    )
+  }
+
+  addSign = (sign: Sign): Promise<TrainingSet> => {
+    return axios.post(
+      `${apiPath}training-set/${this.id}/add/${sign.id}/`,
+      {},
+      {
+        headers: {
+          'Content-Type': `application/json`,
+          'Authorization': `Token ${store.getState().token}`,
+        }
+      },
+    ).then(
+      response => TrainingSet.fromRemote(response.data)
+    )
+  }
+
+  removeSign = (sign: Sign): Promise<TrainingSet> => {
+    return axios.post(
+      `${apiPath}training-set/${this.id}/remove/${sign.id}/`,
+      {},
+      {
+        headers: {
+          'Content-Type': `application/json`,
+          'Authorization': `Token ${store.getState().token}`,
+        }
+      },
+    ).then(
+      response => TrainingSet.fromRemote(response.data)
+    )
+  }
+
+  public static get(id: string | number): Promise<TrainingSet> {
+    const token = store.getState().token;
+    return axios.get(
+      `${apiPath}training-set/${id}/`,
+      token ? {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Token ${token}`,
+        }
+      } : {}
+    ).then(
+      response => TrainingSet.fromRemote(response.data)
+    )
+  }
+
+  public static getCurrent(): Promise<TrainingSet> {
     return axios.get(
       apiPath + 'training-set/',
       {
         headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Token ${store.getState().token}`,
+          'Content-Type': 'application/json',
+          'Authorization': `Token ${store.getState().token}`,
         }
       }
     ).then(
@@ -254,17 +331,41 @@ export class TrainingSet extends Atomic {
     )
   }
 
-  public static new(size: number, familiarityThreshold: number): Promise<TrainingSet> {
+  public static all(offset: number = 0, limit: number = 50): Promise<PaginatedResponse<TrainingSet>> {
+    return axios.get(
+      apiPath + 'training-sets/',
+      {
+        params: {
+          limit,
+          offset,
+        }
+      }
+    ).then(
+      response => {
+        return {
+          objects: response.data.results.map(
+            (set: any) => TrainingSet.fromRemote(set)
+          ),
+          hits: response.data.count,
+        }
+      }
+    )
+  }
+
+  public static new(name: string, size: number, familiarityThreshold: number, isPublic: boolean): Promise<TrainingSet> {
     return axios.post(
       apiPath + 'training-set/',
       {
+        name,
         size,
         familiarity_threshold: familiarityThreshold,
+        public: isPublic,
+        auto: !!size,
       },
       {
         headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Token ${store.getState().token}`,
+          'Content-Type': 'application/json',
+          'Authorization': `Token ${store.getState().token}`,
         }
       }
     ).then(

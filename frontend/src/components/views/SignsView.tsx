@@ -1,18 +1,19 @@
 import React from "react";
 
-import {Link} from "react-router-dom";
-
 import BootstrapTable from 'react-bootstrap-table-next';
+import Button from "react-bootstrap/Button";
 import paginationFactory from 'react-bootstrap-table2-paginator';
 import ToolkitProvider, {Search} from 'react-bootstrap-table2-toolkit';
+import {Link} from "react-router-dom";
 
-import {FullSignWithFamiliarity} from "../models/models";
-import {string} from "prop-types";
+import {FullSign, FullSignWithFamiliarity, Sign} from "../models/models";
 
 
 interface SignsViewProps {
   signs: FullSignWithFamiliarity[];
   familiarityThreshold: number;
+  actionText?: string
+  action?: (sign: Sign) => void
 }
 
 
@@ -27,9 +28,9 @@ export default class SignsView extends React.Component<SignsViewProps, SignsView
   }
 
   render() {
-    const columns = [
+    const columns: { [key: string]: any } = [
       {
-        dataField: 'key',
+        dataField: 'id',
         text: 'Key',
         hidden: true,
       },
@@ -37,57 +38,58 @@ export default class SignsView extends React.Component<SignsViewProps, SignsView
         dataField: 'meaning',
         text: 'Meaning',
         type: 'string',
-      },
-      {
-        dataField: 'meaningSearch',
-        text: 'Meaning Search',
-        type: 'string',
-        hidden: true,
+        sort: true,
+        formatter: (cell: any, row: FullSign) => <Link
+          to={'/sign/' + row.id + '/'}
+        >
+          {row.atom.meaning}
+        </Link>,
+        filterValue: (cell: any, row: FullSign) => row.atom.meaning
       },
       {
         dataField: 'familiarity',
         text: 'Familiarity',
         type: 'number',
         sort: true,
-        sortFunc: (aFam: any, bFam: any, order: string) => {
-          const a = aFam.props.children;
-          const b = bFam.props.children;
-          if (order === 'desc') {
-            return b - a;
+        formatter: (cell: number) => <span
+          style={
+            {
+              color: cell >= this.props.familiarityThreshold ? 'green' : 'red',
+            }
           }
-          return a - b;
+        >
+          {cell}
+        </span>,
+        headerStyle: (column: any, colIndex: number) => {
+          return {width: '7em', textAlign: 'center'};
         },
       },
     ];
 
-    const data = this.props.signs.map(
-      sign => {
-        return {
-          key: sign.id,
-          meaning: <Link
-            to={'/sign/' + sign.id + '/'}
+    if (this.props.actionText) {
+      columns.push(
+        {
+          dataField: 'action',
+          text: '',
+          isDummyField: true,
+          formatter: (cell: any, row: FullSign) => <Button
+            onClick={() => this.props.action(row)}
           >
-            {sign.atom.meaning}
-          </Link>,
-          meaningSearch: sign.atom.meaning,
-          familiarity: <span
-            style={
-              {
-                color: sign.familiarity >= this.props.familiarityThreshold ? 'green' : 'red',
-              }
-            }
-          >
-            {sign.familiarity}
-          </span>,
+            {this.props.actionText}
+          </Button>,
+          headerStyle: (column: any, colIndex: number) => {
+            return {width: '8em', textAlign: 'center'};
+          },
         }
-      }
-    );
+      )
+    }
+
 
     const {SearchBar} = Search;
 
     return <ToolkitProvider
       keyField='key'
-      data={data}
+      data={this.props.signs}
       columns={columns}
       bootstrap4
       search

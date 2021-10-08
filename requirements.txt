@@ -1,5 +1,6 @@
 Django
 djangorestframework>=3.9
+-e git+https://github.com/guldfisk/mocknames.git#egg=mocknames
 -e git+https://github.com/guldfisk/yeetlong.git#egg=yeetlong
 -e git+https://github.com/guldfisk/secretresources.git#egg=secretresources
 appdirs
@@ -15,3 +16,5 @@ gunicorn
 django-cors-headers
 boto3
 psycopg2
+django-extensions
+ipython

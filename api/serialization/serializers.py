@@ -1,4 +1,7 @@
 from django.contrib.auth import authenticate, get_user_model
+from django.db.models import F
+from django.db.models.functions import Coalesce
+
 from rest_framework import serializers
 
 from api import models
@@ -45,13 +48,13 @@ class LoginSerializer(serializers.Serializer):
 class SignSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Sign
-        fields = ('id', 'external_id',)
+        fields = ('id', 'video_id', 'thumb_id')
 
 
 class MinimalSemanticAtomSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.SemanticAtom
-        fields = ('id', 'meaning')
+        fields = ('id', 'meaning', 'external_id')
 
 
 class FullSignSerializer(serializers.ModelSerializer):
@@ -59,7 +62,7 @@ class FullSignSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Sign
-        fields = ('id', 'external_id', 'atom')
+        fields = ('id', 'video_id', 'thumbnail_id', 'atom')
 
 
 class FullSignSerializerWithFamiliarity(serializers.ModelSerializer):
@@ -68,7 +71,7 @@ class FullSignSerializerWithFamiliarity(serializers.ModelSerializer):
 
     class Meta:
         model = models.Sign
-        fields = ('id', 'external_id', 'atom', 'familiarity')
+        fields = ('id', 'video_id', 'thumbnail_id', 'atom', 'familiarity')
 
 
 class SemanticAtomSerializer(serializers.ModelSerializer):
@@ -76,7 +79,7 @@ class SemanticAtomSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.SemanticAtom
-        fields = ('id', 'meaning', 'signs')
+        fields = ('id', 'meaning', 'signs', 'external_id')
 
 
 class TrainingSetSerializer(serializers.ModelSerializer):
@@ -84,7 +87,21 @@ class TrainingSetSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.TrainingSet
-        fields = ('id', 'threshold', 'size', 'signs')
+        fields = ('id', 'threshold', 'signs', 'name')
+
+
+class TrainingSetWithFamiliaritySerializer(TrainingSetSerializer):
+    signs = serializers.SerializerMethodField()
+
+    @classmethod
+    def get_signs(cls, instance: models.TrainingSet):
+        return [
+            FullSignSerializerWithFamiliarity(sign).data
+            for sign in
+            instance.signs.select_related('atom').annotate(
+                familiarity = Coalesce(F('familiarities__level'), 0),
+            ).order_by('-familiarity', 'atom__meaning')
+        ]
 
 
 class TrainingSerializer(serializers.Serializer):

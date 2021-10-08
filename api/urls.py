@@ -10,11 +10,14 @@ urlpatterns = [
 
     path('sign/<int:pk>/', views.SignView.as_view()),
     path('sign/<int:pk>/familiarity/', views.SignFamiliarity.as_view()),
+    path('sign/search/<str:query>/', views.SearchView.as_view()),
 
-    path('atom/<int:pk>/', views.SemanticAtomView.as_view()),
-
-    path('training-set/', views.TrainingSetView.as_view()),
+    path('training-set/<int:pk>/add/<int:sign_pk>/', views.AddSignView.as_view()),
+    path('training-set/<int:pk>/remove/<int:sign_pk>/', views.RemoveSignView.as_view()),
+    path('training-set/<int:pk>/', views.TrainingSetView.as_view()),
+    path('training-set/', views.MyTrainingSetView.as_view()),
     path('training-set/sign/', views.TrainingView.as_view()),
+    path('training-sets/', views.TrainingSetList.as_view()),
 
     path('repetition/', views.RepetitionView.as_view()),
 

@@ -1,14 +1,15 @@
 import React from 'react';
 
-import {Loading} from '../utils/utils';
-import {FullSignWithFamiliarity} from "../models/models";
+import Alert from "react-bootstrap/Alert";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import {connect} from "react-redux";
+
+import SignsView from "../views/SignsView";
+import {FullSignWithFamiliarity} from "../models/models";
+import {Loading} from '../utils/utils';
 import {Settings} from "../state/reducers";
 import {updateSettings} from "../state/settings";
-import SignsView from "../views/signs";
-import Alert from "react-bootstrap/Alert";
 
 
 interface FamiliarityPageProps {

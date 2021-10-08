@@ -1,16 +1,19 @@
 from __future__ import annotations
 
+from django.conf import settings
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.timezone import now
-from django.contrib.auth import get_user_model
 
 
 class SemanticAtom(models.Model):
-    meaning = models.CharField(max_length = 255)
+    external_id = models.IntegerField(unique = True)
+    meaning = models.CharField(max_length = 255, unique = True)
 
 
 class Sign(models.Model):
-    external_id = models.IntegerField()
+    video_id = models.IntegerField()
+    thumbnail_id = models.IntegerField()
     atom = models.ForeignKey(
         SemanticAtom,
         on_delete = models.CASCADE,
@@ -22,9 +25,10 @@ class TrainingSet(models.Model):
     signs = models.ManyToManyField(Sign)
     created_at = models.DateTimeField(default = now)
     threshold = models.IntegerField()
-    size = models.IntegerField()
-    user = models.ForeignKey(
-        get_user_model(),
+    name = models.TextField()
+    public = models.BooleanField(default = False)
+    creator = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
         on_delete = models.CASCADE,
         related_name = 'training_sets',
     )
@@ -32,7 +36,7 @@ class TrainingSet(models.Model):
 
 class Familiarity(models.Model):
     user = models.ForeignKey(
-        get_user_model(),
+        settings.AUTH_USER_MODEL,
         on_delete = models.CASCADE,
         related_name = 'familiarities',
     )

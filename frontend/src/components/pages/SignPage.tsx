@@ -1,13 +1,12 @@
 import React from 'react';
 
 import {connect} from "react-redux";
+import Button from "react-bootstrap/Button";
+import Container from "react-bootstrap/Container";
 
 import {Loading} from '../utils/utils';
 import {FullSign} from "../models/models";
-import Container from "react-bootstrap/Container";
 import {SignVideo} from "../views/video";
-import {Link} from "react-router-dom";
-import Button from "react-bootstrap/Button";
 
 
 interface SignPageProps {
@@ -45,11 +44,11 @@ class SignPage extends React.Component<SignPageProps, SignPageState> {
     if (this.state.sign !== null) {
       atom = <div>
         {
-          <Link
-            to={'/atom/' + this.state.sign.atom.id}
+          <a
+            href={this.state.sign.atom.getExternalLink()}
           >
             {this.state.sign.atom.meaning}
-          </Link>
+          </a>
         }
         <SignVideo
           sign={this.state.sign}

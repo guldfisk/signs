@@ -27,6 +27,8 @@ HOST = _config_parser['default']['host']
 INSTALLED_APPS = [
     'rest_framework',
     'knox',
+    'django_extensions',
+    'users.apps.UsersConfig',
     'api.apps.ApiConfig',
     'frontend.apps.FrontendConfig',
     # 'corsheaders',
@@ -37,6 +39,10 @@ INSTALLED_APPS = [
     # 'django.contrib.messages',
     'django.contrib.staticfiles',
 ]
+
+AUTH_USER_MODEL = 'users.User'
+
+SHELL_PLUS = 'ipython'
 
 MIDDLEWARE = [
     # 'corsheaders.middleware.CorsMiddleware',
@@ -96,13 +102,9 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
+TIME_ZONE = 'Europe/Copenhagen'
 USE_I18N = False
-
 USE_L10N = False
-
 USE_TZ = True
 
 STATIC_URL = '/static/'
