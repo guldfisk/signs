@@ -16,7 +16,7 @@ import TrainingSetEditView from "../views/TrainingSetEditView";
 
 interface CreateTrainingSetFormProps {
   settings: Settings
-  handleSubmit: (name: string, size: number, familiarityThreshold: number, isPublic: boolean) => void
+  handleSubmit: (name: string, size: number, isPublic: boolean) => void
 }
 
 
@@ -26,7 +26,6 @@ class CreateTrainingSetForm extends React.Component<CreateTrainingSetFormProps> 
     this.props.handleSubmit(
       event.target.elements.name.value,
       parseInt(event.target.elements.size.value),
-      parseInt(event.target.elements.familiarityThreshold.value),
       event.target.elements.public.checked,
     );
     event.preventDefault();
@@ -54,13 +53,6 @@ class CreateTrainingSetForm extends React.Component<CreateTrainingSetFormProps> 
           <Form.Control
             type="number"
             defaultValue={this.props.settings.defaultTrainingSetSize.toString()}
-          />
-        </Form.Group>
-        <Form.Group controlId="familiarityThreshold">
-          <Form.Label>Familiarity Threshold</Form.Label>
-          <Form.Control
-            type="number"
-            defaultValue={this.props.settings.defaultTrainingSetThreshold.toString()}
           />
         </Form.Group>
         <Form.Group controlId="public">
@@ -128,11 +120,10 @@ class CurrentTrainingSetPage extends React.Component<TrainingSetPageProps, Train
     );
   }
 
-  handleNewTrainingSet = (name: string, size: number, familiarityThreshold: number, isPublic: boolean): void => {
+  handleNewTrainingSet = (name: string, size: number, isPublic: boolean): void => {
     this.props.updateSettings(
       {
         defaultTrainingSetSize: size.toString(),
-        defaultTrainingSetThreshold: familiarityThreshold.toString(),
       }
     );
     this.setState(
@@ -140,7 +131,7 @@ class CurrentTrainingSetPage extends React.Component<TrainingSetPageProps, Train
         loading: true
       },
       () => {
-        TrainingSet.new(name, size, familiarityThreshold, isPublic).then(
+        TrainingSet.new(name, size, this.props.settings.trainingSetThreshold, isPublic).then(
           trainingSet => {
             this.setState(
               {
@@ -165,7 +156,7 @@ class CurrentTrainingSetPage extends React.Component<TrainingSetPageProps, Train
 
   render() {
     const complete = this.state.trainingSet && this.state.trainingSet.signs.every(
-      sign => sign.familiarity >= this.state.trainingSet.threshold
+      sign => sign.familiarity >= this.props.settings.trainingSetThreshold
     );
 
     return <Container

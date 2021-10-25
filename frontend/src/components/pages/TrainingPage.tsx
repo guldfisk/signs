@@ -54,7 +54,10 @@ class TrainingPage extends React.Component<TrainingPageProps, TrainingPageState>
         );
 
         const promise = this.props.settings.trainingMode === 'set' ?
-          Sign.nextTrainingSign(feedback) :
+          Sign.nextTrainingSign(
+            this.props.settings.trainingSetThreshold,
+            feedback,
+          ) :
           Sign.repetitionSign(
             this.props.settings.repetitionThreshold,
             feedback,
@@ -125,17 +128,29 @@ class TrainingPage extends React.Component<TrainingPageProps, TrainingPageState>
           {this.props.settings.includeReverse ? 'including meaning first' : 'excluding meaning first'}
         </Button>
         {
-          this.props.settings.trainingMode === 'repetition' ? <input
+          <input
             type={'number'}
-            defaultValue={this.props.settings.repetitionThreshold.toString()}
+            value={
+              this.props.settings.trainingMode === 'set' ?
+                this.props.settings.trainingSetThreshold.toString() :
+                this.props.settings.repetitionThreshold.toString()
+            }
             onChange={
               (event) => {
                 if (event.target.value) {
-                  this.props.updateSettings({repetitionThreshold: event.target.value})
+                  this.props.updateSettings(
+                    {
+                      [
+                        this.props.settings.trainingMode === 'set' ?
+                          'trainingSetThreshold' :
+                          'repetitionThreshold'
+                        ]: event.target.value
+                    }
+                  )
                 }
               }
             }
-          /> : null
+          />
         }
       </Row>
       {

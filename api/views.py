@@ -205,11 +205,8 @@ class MyTrainingSetView(generics.RetrieveAPIView):
             if not len(name) in range(5, 128):
                 raise ValidationError('Invalid name')
 
-            if public:
-                familiarity_threshold = 3
-            else:
-                familiarity_threshold = int(request.data.get('familiarity_threshold', 3))
-            if not familiarity_threshold in range(1, 10):
+            familiarity_threshold = int(request.data.get('familiarity_threshold', 3))
+            if not familiarity_threshold in range(1, 256):
                 raise ValidationError('Invalid familiarity_threshold')
 
             if auto:
@@ -225,7 +222,6 @@ class MyTrainingSetView(generics.RetrieveAPIView):
             training_set = models.TrainingSet.objects.create(
                 name = name,
                 creator = request.user,
-                threshold = familiarity_threshold,
                 public = public,
             )
 
@@ -314,7 +310,7 @@ class TrainingView(generics.GenericAPIView):
                 )
             )
         ).filter(
-            familiarity__lt = training_set.threshold
+            familiarity__lt = serializer.validated_data['threshold'],
         ).order_by('?')[:2]
 
         if not signs:
@@ -334,7 +330,7 @@ class TrainingView(generics.GenericAPIView):
 class RepetitionView(generics.GenericAPIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
-    serializer_class = serializers.RepetitionTrainingSerializer
+    serializer_class = serializers.TrainingSerializer
 
     def get(self, request: Request) -> Response:
         signs = models.Sign.objects.annotate(

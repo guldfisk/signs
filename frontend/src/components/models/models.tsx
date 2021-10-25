@@ -70,10 +70,13 @@ export class Sign extends Atomic {
     )
   };
 
-  public static nextTrainingSign(feedback: SignFeedback | null = null): Promise<FullSign> {
+  public static nextTrainingSign(threshold: number, feedback: SignFeedback | null = null): Promise<FullSign> {
     return axios.post(
       apiPath + 'training-set/sign/',
-      !feedback ? {} : {
+      !feedback ? {
+        threshold,
+      } : {
+        threshold,
         sign: feedback.sign.id,
         success: feedback.success,
       },
@@ -233,13 +236,11 @@ export class MinimalAtom extends Atomic {
 
 
 export class TrainingSet extends Atomic {
-  threshold: number
   name: string
   signs: FullSignWithFamiliarity[]
 
-  constructor(id: number | string, threshold: number, name: string, signs: FullSignWithFamiliarity[]) {
+  constructor(id: number | string, name: string, signs: FullSignWithFamiliarity[]) {
     super(id);
-    this.threshold = threshold;
     this.name = name;
     this.signs = signs;
   }
@@ -247,7 +248,6 @@ export class TrainingSet extends Atomic {
   public static fromRemote(remote: any): TrainingSet {
     return new TrainingSet(
       remote.id,
-      remote.threshold,
       remote.name,
       remote.signs.map((sign: any) => FullSignWithFamiliarity.fromRemote(sign)),
     )

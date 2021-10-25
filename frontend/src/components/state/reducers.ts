@@ -4,7 +4,7 @@ import {keys} from "ts-transformer-keys";
 
 export interface Settings {
   defaultTrainingSetSize: number
-  defaultTrainingSetThreshold: number
+  trainingSetThreshold: number
   repetitionThreshold: number
   trainingMode: string
   includeReverse: string
@@ -13,7 +13,7 @@ export interface Settings {
 
 const settingsDefaults: Settings = {
   defaultTrainingSetSize: 20,
-  defaultTrainingSetThreshold: 3,
+  trainingSetThreshold: 3,
   repetitionThreshold: 6,
   trainingMode: 'set',
   includeReverse: '',

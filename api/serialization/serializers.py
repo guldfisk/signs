@@ -87,7 +87,7 @@ class TrainingSetSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.TrainingSet
-        fields = ('id', 'threshold', 'signs', 'name')
+        fields = ('id', 'signs', 'name')
 
 
 class TrainingSetWithFamiliaritySerializer(TrainingSetSerializer):
@@ -107,13 +107,10 @@ class TrainingSetWithFamiliaritySerializer(TrainingSetSerializer):
 class TrainingSerializer(serializers.Serializer):
     sign = serializers.IntegerField(allow_null = True, required = False, default = None)
     success = serializers.BooleanField(allow_null = True, required = False, default = None)
+    threshold = serializers.IntegerField(required = True)
 
     def update(self, instance, validated_data):
         raise NotImplemented()
 
     def create(self, validated_data):
         raise NotImplemented()
-
-
-class RepetitionTrainingSerializer(TrainingSerializer):
-    threshold = serializers.IntegerField()

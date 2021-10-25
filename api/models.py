@@ -24,7 +24,6 @@ class Sign(models.Model):
 class TrainingSet(models.Model):
     signs = models.ManyToManyField(Sign)
     created_at = models.DateTimeField(default = now)
-    threshold = models.IntegerField()
     name = models.TextField()
     public = models.BooleanField(default = False)
     creator = models.ForeignKey(
