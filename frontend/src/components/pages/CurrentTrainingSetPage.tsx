@@ -141,7 +141,7 @@ class CurrentTrainingSetPage extends React.Component<TrainingSetPageProps, Train
             )
           }
         ).catch(
-          error => {
+          () => {
             this.setState(
               {
                 loading: false,
@@ -175,6 +175,14 @@ class CurrentTrainingSetPage extends React.Component<TrainingSetPageProps, Train
           settings={this.props.settings}
         />
       </Row>
+      <Row>
+        <label>Trainingset Threshold</label>
+        <input
+          value={this.props.settings.trainingSetThreshold}
+          type="number"
+          onChange={(e: any) => this.props.updateSettings({trainingSetThreshold: e.target.value})}
+        />
+      </Row>
       {
         this.state.trainingSet === null ?
           this.state.loading ?
@@ -186,7 +194,6 @@ class CurrentTrainingSetPage extends React.Component<TrainingSetPageProps, Train
             </Alert> : <TrainingSetEditView
             trainingSet={this.state.trainingSet}
             onTrainingSetChanged={(trainingSet) => this.setState({trainingSet})}
-            // key={this.state.trainingSet.id}
           />
       }
     </Container>

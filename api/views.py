@@ -294,7 +294,7 @@ class TrainingView(generics.GenericAPIView):
             if success:
                 familiarity.level += 1
             else:
-                familiarity.level = 0
+                familiarity.level = min(familiarity.level, 1)
 
             familiarity.save(update_fields = ('level',))
 
@@ -381,7 +381,7 @@ class RepetitionView(generics.GenericAPIView):
             if success:
                 familiarity.level += 1
             else:
-                familiarity.level = 0
+                familiarity.level = min(familiarity.level, 1)
 
             familiarity.save(update_fields = ('level',))
 
