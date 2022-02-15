@@ -14,6 +14,7 @@ urlpatterns = [
 
     path('training-set/<int:pk>/add/<int:sign_pk>/', views.AddSignView.as_view()),
     path('training-set/<int:pk>/remove/<int:sign_pk>/', views.RemoveSignView.as_view()),
+    path('training-set/<int:pk>/reset/', views.TrainingSetResetView.as_view()),
     path('training-set/<int:pk>/', views.TrainingSetView.as_view()),
     path('training-set/', views.MyTrainingSetView.as_view()),
     path('training-set/sign/', views.TrainingView.as_view()),

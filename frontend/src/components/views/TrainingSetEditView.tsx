@@ -32,6 +32,7 @@ export default class TrainingSetEditView extends React.Component<TrainingSetEdit
     return <>
       <Row>
         <Button onClick={() => this.setState({adding: !this.state.adding})}>Add Signs</Button>
+        <Button onClick={() => this.props.trainingSet.reset().then(this.props.onTrainingSetChanged)}>Reset Familiarity</Button>
       </Row>
       {
         this.state.adding && <Row>

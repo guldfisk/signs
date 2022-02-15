@@ -272,6 +272,21 @@ export class TrainingSet extends Atomic {
     )
   }
 
+  reset = (): Promise<TrainingSet> => {
+    return axios.patch(
+      `${apiPath}training-set/${this.id}/reset/`,
+      {},
+      {
+        headers: {
+          'Content-Type': `application/json`,
+          'Authorization': `Token ${store.getState().token}`,
+        }
+      },
+    ).then(
+      response => TrainingSet.fromRemote(response.data)
+    )
+  }
+
   addSign = (sign: Sign): Promise<TrainingSet> => {
     return axios.post(
       `${apiPath}training-set/${this.id}/add/${sign.id}/`,

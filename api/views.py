@@ -152,6 +152,23 @@ class TrainingSetView(generics.RetrieveAPIView):
         return Response(serializer.data)
 
 
+class TrainingSetResetView(generics.GenericAPIView):
+    queryset = models.TrainingSet.objects.all()
+    serializer_class = serializers.TrainingSetWithFamiliaritySerializer
+    permission_classes = (IsAuthenticated,)
+
+    def filter_queryset(self, queryset):
+        return queryset.filter(Q(public = True) | Q(creator = self.request.user))
+
+    def patch(self, request: Request, **kwargs) -> Response:
+        instance = self.get_object()
+        models.Familiarity.objects.filter(
+            user = request.user,
+            sign__trainingset = instance,
+        ).update(level = 1)
+        return Response(self.get_serializer(instance).data)
+
+
 class AddSignView(generics.GenericAPIView):
     queryset = models.TrainingSet.objects.all()
     serializer_class = serializers.TrainingSetWithFamiliaritySerializer
@@ -202,7 +219,7 @@ class MyTrainingSetView(generics.RetrieveAPIView):
             name = request.data.get('name')
             if not name:
                 name = NameGenerator().get_name()
-            if not len(name) in range(5, 128):
+            if not len(name) in range(2, 128):
                 raise ValidationError('Invalid name')
 
             familiarity_threshold = int(request.data.get('familiarity_threshold', 3))
