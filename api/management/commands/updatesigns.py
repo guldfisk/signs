@@ -1,6 +1,4 @@
-from collections import defaultdict
-
-import requests as r
+import requests
 import re
 
 from django.core.management.base import BaseCommand
@@ -25,7 +23,7 @@ class Command(BaseCommand):
             'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0',
         }
 
-        response = r.get(
+        response = requests.get(
             'http://tegnsprog.dk/indeks/artikel.js',
             headers = headers,
         )
@@ -38,13 +36,13 @@ class Command(BaseCommand):
                     external_id = external_id,
                 )
 
-            response = r.get(
+            response = requests.get(
                 'http://tegnsprog.dk/indeks/artikel_liste.js',
                 headers = headers,
             )
 
-            for line in re.finditer('"(.+?)\|.*(t_(\d+))\|(f_(\d+)).*"', response.content.decode('UTF-8')):
-                meaning, _, video_id, _, thumb_id = line.groups()
+            for line in re.finditer('"(.+?)\|.*t_(\d+).*f_(\d+).*"', response.content.decode('UTF-8')):
+                meaning, video_id, thumb_id = line.groups()
 
                 try:
                     atom = models.SemanticAtom.objects.get(meaning__iexact = meaning)
